@@ -1,0 +1,247 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none';script-src 'unsafe-inline';style-src 'unsafe-inline';img-src blob: data: https://cdn.discordapp.com https://media.discordapp.net;connect-src 'none';form-action 'none'">
+<title>Discord Data Visualizer</title>
+<style>
+:root{--bg:#313338;--b2:#2b2d31;--b3:#1e1f22;--tx:#dbdee1;--mu:#949ba4;--br:#5865f2;--hv:#35373c;--ln:#3f4147;--gr:#23a55a;--rd:#f23f43}
+*{box-sizing:border-box}html,body{height:100%;margin:0}body{font:15px/1.4 "gg sans","Noto Sans","Segoe UI",Helvetica,Arial,sans-serif;background:var(--b3);color:var(--tx);overflow:hidden}
+button,input,select{font:inherit;color:inherit}button{cursor:pointer}a{color:#00a8fc}.mu{color:var(--mu)}
+input,select{background:var(--b3);border:1px solid transparent;border-radius:4px;padding:6px 8px;outline:0}input:focus,select:focus,button:focus-visible{border-color:var(--br)}
+button.b{background:var(--br);border:0;border-radius:4px;padding:7px 14px;color:#fff;font-weight:500}button.g{background:#4e5058;border:0;border-radius:4px;padding:6px 12px}
+#app{display:flex;height:100%}#rail{width:72px;padding:12px 0;display:flex;flex-direction:column;align-items:center;gap:8px;overflow-y:auto;flex:none;scrollbar-width:none}
+.ri{width:48px;height:48px;border-radius:24px;background:var(--bg) center/cover;display:grid;place-items:center;cursor:pointer;font-weight:600;overflow:hidden;position:relative;flex:none;transition:border-radius .15s,background-color .15s;font-size:14px}
+.ri:hover,.ri.on{border-radius:15px;background-color:var(--br);color:#fff}.ri.on{box-shadow:-14px 0 0 -9px #fff}.ri i{position:absolute;right:1px;bottom:0;font-size:12px;font-style:normal}.sep{width:32px;height:2px;background:var(--bg);flex:none}
+#side{width:240px;background:var(--b2);display:flex;flex-direction:column;flex:none}#sh{height:48px;padding:0 16px;display:flex;align-items:center;gap:6px;font-weight:600;border-bottom:1px solid var(--b3);flex:none;white-space:nowrap;overflow:hidden}
+#sf{margin:8px 8px 0}#sl{flex:1;overflow-y:auto;padding:8px}.cat{font-size:12px;font-weight:600;color:var(--mu);padding:14px 8px 4px}
+.it{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:4px;color:var(--mu);cursor:pointer;white-space:nowrap;margin-bottom:1px}.it span{overflow:hidden;text-overflow:ellipsis}.it:hover{background:var(--hv);color:var(--tx)}.it.on{background:#404249;color:#fff}.it small{margin-left:auto;font-size:11px}.it b{width:18px;text-align:center;font-weight:400;flex:none}
+#up{height:52px;background:#232428;display:flex;align-items:center;padding:0 8px;flex:none}.u{display:flex;align-items:center;gap:8px;padding:4px;border-radius:4px;cursor:pointer;flex:1;min-width:0}.u:hover{background:var(--hv)}.u div{min-width:0;line-height:1.2}.u small{display:block;color:var(--mu);font-size:12px}
+.av{width:32px;height:32px;border-radius:50%;background:var(--br) center/cover;flex:none;display:grid;place-items:center;font-weight:600;color:#fff;font-size:14px}
+#main{flex:1;display:flex;flex-direction:column;background:var(--bg);min-width:0;border-top-left-radius:8px}#top{height:48px;display:flex;align-items:center;gap:8px;padding:0 16px;border-bottom:1px solid var(--b3);flex:none}#top b{white-space:nowrap}#top input{width:190px}
+#ct{flex:1;overflow:hidden;display:flex;flex-direction:column;min-height:0}#msgs,.pad{flex:1;overflow-y:auto}.pad{padding:24px 32px;max-width:900px;width:100%}.pad h2{margin:0 0 16px}
+#pane{width:300px;background:var(--b2);overflow-y:auto;padding:16px;flex:none;border-left:1px solid var(--b3);font-size:14px}.hide #pane{display:none}#pane h4{margin:18px 0 8px;font-size:12px;color:var(--mu)}#pane h3{margin:0}
+.kv{display:flex;justify-content:space-between;gap:8px;padding:3px 0}.kv span:first-child{color:var(--mu)}.kv span:last-child{text-align:right;overflow-wrap:anywhere}
+.mb{display:flex;align-items:flex-end;height:50px;gap:1px}.mb i{flex:1;background:var(--br);min-height:1px;opacity:.8;cursor:pointer}.mb i:hover{opacity:1;background:#fff}
+.sw{display:flex;align-items:center;gap:8px;padding:5px 0}
+.m{padding:2px 16px 2px 72px;position:relative;min-height:22px}.m.h{margin-top:16px}.m:hover{background:#2e3035}.m .av{position:absolute;left:16px;top:2px;width:40px;height:40px}
+.hd{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}.hd b{color:#fff}.hd time{font-size:12px;color:var(--mu);cursor:pointer}.hd time:hover{text-decoration:underline}.cl{font-size:12px;background:#404249;border-radius:4px;padding:0 6px;cursor:pointer}
+.ht{position:absolute;left:0;width:56px;text-align:right;font-size:11px;color:var(--mu);display:none;line-height:22px;cursor:pointer}.m:hover .ht{display:block}
+.c{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.375}.c pre{background:var(--b2);border:1px solid var(--b3);border-radius:4px;padding:8px;margin:4px 0;overflow-x:auto;white-space:pre}.c code{background:var(--b2);padding:1px 4px;border-radius:3px;font-size:13px}
+.c blockquote{margin:0;padding-left:10px;border-left:4px solid #4e5058;display:block}.c h4{margin:6px 0 2px;font-size:18px;display:inline-block}.mn{background:rgba(88,101,242,.3);color:#c9cdfb;border-radius:3px;padding:0 2px}.mn[data-ch]{cursor:pointer}.ep{color:var(--mu)}.em{height:22px;vertical-align:-5px}
+.sp{background:#1e1f22;color:transparent;border-radius:3px;cursor:pointer}.sp.on{background:#2e3035;color:inherit}
+.att{display:inline-flex;gap:6px;align-items:center;background:var(--b2);border:1px solid var(--b3);border-radius:6px;padding:6px 10px;margin:4px 4px 0 0;cursor:pointer;max-width:100%}.att:hover{border-color:var(--br)}.att small{color:var(--mu)}.att img{max-width:400px;max-height:300px;border-radius:6px}
+.dv{display:flex;align-items:center;margin:16px 16px 4px;color:var(--mu);font-size:12px;font-weight:600;border-top:1px solid var(--ln)}.dv span{margin:-9px auto 0;background:var(--bg);padding:0 8px}
+.intro{padding:48px 16px 16px}.intro .ib{width:68px;height:68px;border-radius:50%;background:#41434a;display:grid;place-items:center;font-size:34px}.intro h1{margin:12px 0 4px}
+.fx{animation:fx 2s}@keyframes fx{0%,60%{background:rgba(250,166,26,.25)}}.empty{padding:40px;text-align:center;color:var(--mu)}
+.fr{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}.fr label{display:flex;gap:6px;align-items:center;color:var(--mu)}.fr #q{flex:1;min-width:200px}
+.res{background:var(--b2);border-radius:6px;padding:8px 12px;margin-bottom:6px;cursor:pointer;border:1px solid transparent}.res:hover{border-color:var(--br)}.res small{color:var(--mu)}.res p{margin:4px 0 0;overflow-wrap:anywhere;white-space:pre-wrap}mark{background:#faa61a55;color:inherit;border-radius:2px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;margin-bottom:20px}.card{background:var(--b2);border-radius:8px;padding:14px 16px}.card b{font-size:22px;display:block}
+.bar{display:flex;align-items:center;gap:10px;padding:5px 8px;border-radius:4px;cursor:pointer;position:relative}.bar:hover{background:var(--hv)}.bar span{flex:0 0 230px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.bar i{height:8px;border-radius:4px;background:var(--br)}
+.bn{height:100px;border-radius:8px 8px 0 0}.ah{display:flex;align-items:flex-end;gap:16px;padding:0 16px;margin-top:-40px;background:var(--b2);border-radius:0 0 8px 8px;padding-bottom:14px}.ah .av{width:80px;height:80px;border:6px solid var(--b2);font-size:32px;margin-top:0}.ah h2{margin:0}
+.sc{background:var(--b2);border-radius:8px;padding:6px 16px;margin:16px 0}.rw{display:flex;justify-content:space-between;gap:16px;padding:10px 0;border-bottom:1px solid var(--ln)}.rw:last-child{border:0}.rw small{display:block;font-size:12px;font-weight:600;color:var(--mu);margin-bottom:2px}.rw div:last-child{text-align:right;overflow-wrap:anywhere}
+h3.sec{margin:24px 0 0}.chip{display:inline-flex;gap:6px;align-items:center;background:var(--b2);border-radius:14px;padding:3px 10px;margin:0 6px 6px 0}.chip img{height:20px}.badge{font-size:11px;background:var(--br);border-radius:4px;padding:1px 6px;color:#fff}.badge.r{background:var(--rd)}
+.blur .sens{filter:blur(6px);user-select:none}details{margin-left:14px}summary{cursor:pointer}.lf{margin-left:14px;overflow-wrap:anywhere}.lf code{color:#c9cdfb}.string{color:#8ec07c}.number{color:#fabd2f}.boolean{color:#fb4934}#jt{font:13px/1.6 ui-monospace,Consolas,monospace}#jt button{margin:4px 14px}
+.tbl{width:100%;border-collapse:collapse}.tbl td{padding:6px 8px;border-bottom:1px solid var(--ln)}.tbl tr[data-a]{cursor:pointer}.tbl tr[data-a]:hover{background:var(--hv)}
+#modal{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;place-items:center;z-index:9}.mc{background:var(--bg);border-radius:8px;padding:20px;width:min(560px,92vw);max-height:80vh;overflow:auto}.mc dt{color:var(--mu);font-size:12px;margin-top:8px}.mc dd{margin:0;overflow-wrap:anywhere}.mc pre{white-space:pre-wrap;background:var(--b2);padding:8px;border-radius:4px}
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#111214;padding:10px 16px;border-radius:6px;display:none;z-index:10}
+#land{position:fixed;inset:0;background:radial-gradient(circle at 30% 20%,#2e3270,#1e1f22 60%);display:grid;place-items:center;z-index:20;padding:20px}#land .bx{max-width:540px;text-align:center}#land h1{margin:0 0 8px}.dz{border:2px dashed #5865f2;border-radius:12px;padding:36px 20px;margin:20px 0;background:rgba(0,0,0,.25)}#pg{height:6px;background:#111;border-radius:3px;overflow:hidden;display:none}#pg i{display:block;height:100%;width:0;background:var(--br)}
+@media(max-width:900px){#pane{display:none}#side{width:200px}}
+</style></head><body>
+<div id="land"><div class="bx"><h1>Discord Data Visualizer</h1><p class="mu">Explore the package from Discord's “Request your Data”. Everything is read in your browser and nothing is uploaded.</p>
+<div class="dz" id="dz"><p>Drop your package folder here<br><span class="mu">the one containing Account, Messages and Servers</span></p><button class="b" id="pick">Choose folder</button><input type="file" id="fi" webkitdirectory multiple hidden></div>
+<div id="pg"><i></i></div><p id="ls" class="mu"></p></div></div>
+<div id="app" hidden><div id="rail"></div><div id="side"><div id="sh"></div><input id="sf" placeholder="Filter…"><div id="sl"></div><div id="up"></div></div><div id="main"><div id="top"></div><div id="ct"></div></div><div id="pane"></div></div>
+<div id="modal"></div><div id="toast"></div>
+<script>
+const $=s=>document.querySelector(s),E=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const S={F:new Map,U:{},srv:new Map,ch:new Map,M:[],blob:{recent:[]},emo:{},emoN:{},fr:{},cfg:{blur:0,local:0,utc:0},nav:{r:'home'},warn:[],json:[],midx:{},cur:{list:[]}};
+let W={lo:0,hi:0};
+const KNOWN=/^(Account\/(user|user_data_exports\/discord_harvests\/data_subject_access_requests)\.json|Messages\/index\.json|Messages\/c?\d+\/(channel|messages)\.json|Servers\/index\.json|Servers\/\d+\/(guild|channels|emoji)\.json)$/i;
+const SF=id=>{try{return Number(BigInt(id)>>22n)+1420070400000}catch{return 0}},fn=n=>n.toLocaleString('en-US'),hue=s=>{let h=0;for(const c of String(s))h=h*31+c.charCodeAt(0)|0;return Math.abs(h)%360};
+const fmt=(t,o)=>new Intl.DateTimeFormat('en-US',{...o,timeZone:S.cfg.utc?'UTC':undefined}).format(t),D=t=>fmt(t,{dateStyle:'long'}),DT=t=>fmt(t,{dateStyle:'short',timeStyle:'short'}),TM=t=>fmt(t,{timeStyle:'short'});
+const dk=t=>Math.floor((t-(S.cfg.utc?0:new Date(t).getTimezoneOffset()*6e4))/864e5);
+const rel=t=>{const s=(t-Date.now())/1e3,R=new Intl.RelativeTimeFormat('en');for(const[u,n]of[['year',31536e3],['month',2592e3],['day',86400],['hour',3600],['minute',60]])if(Math.abs(s)>=n)return R.format(Math.round(s/n),u);return R.format(Math.round(s),'second')};
+const av=(u,n,c='')=>`<div class="av ${c}" style="${u?`background-image:url(${u})`:`background-color:hsl(${hue(n)} 45% 40%)`}">${u?'':E([...String(n||'?')][0]).toUpperCase()}</div>`;
+const toast=t=>{const e=$('#toast');e.textContent=t;e.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>e.style.display='none',2500)};
+const mod=h=>{const m=$('#modal');m.innerHTML=`<div class="mc">${h}<p><button class="g" data-a="x">Close</button></p></div>`;m.style.display='grid'};
+const TI={GUILD_VOICE:'🔊',GUILD_CATEGORY:'▾',PUBLIC_THREAD:'🧵',PRIVATE_THREAD:'🧵',GUILD_FORUM:'💬',GUILD_ANNOUNCEMENT:'📢'};
+const ci=c=>c.dm?'@':TI[c.type]||'#',cl=(c,full)=>c.dm?'@'+c.name:'#'+c.name+(full?' · '+S.srv.get(c.srv).name:'');
+
+/* ---------- loading ---------- */
+const J=async p=>{const f=S.F.get(p);if(!f)return;try{return JSON.parse(await f.text())}catch{S.warn.push(p)}};
+const BL=p=>S.F.has(p)?URL.createObjectURL(S.F.get(p)):'';
+const prog=(x,t)=>{$('#pg').style.display='block';$('#pg i').style.width=x*100+'%';$('#ls').textContent=t||''};
+const srvGet=(key,name,id)=>{let s=S.srv.get(key);if(!s)S.srv.set(key,s={key,id,name,owned:false,chans:[],roles:{},emoji:[],dm:key=='@dm'});return s};
+async function walk(e,p,out){if(e.isFile)out.push([p+e.name,await new Promise(r=>e.file(r))]);else{const rd=e.createReader(),a=[];for(;;){const b=await new Promise(r=>rd.readEntries(r));if(!b.length)break;a.push(...b)}for(const x of a)await walk(x,p+e.name+'/',out)}}
+async function ingest(list){
+ let pre='';for(const[p]of list){const m=p.match(/^(.*?\/)?(?:Account\/user|Messages\/index|Servers\/index)\.json$/i);if(m){pre=m[1]||'';break}}
+ if(!pre){const f=list[0]?.[0].split('/')[0];if(f&&list.every(([p])=>p.startsWith(f+'/')))pre=f+'/'}
+ for(const[p,f]of list)if(p.startsWith(pre))S.F.set(p.slice(pre.length),f);
+ if(!S.F.size)return prog(0,'No files found. Please choose the package folder.');
+ prog(.02,'Reading account…');
+ const U=S.U=await J('Account/user.json')||{};S.blob.avatar=BL('Account/avatar.png');
+ for(const k of S.F.keys())if(/^Account\/recent_avatars\/[^/]+\.(png|jpe?g|gif|webp)$/i.test(k))S.blob.recent.push(BL(k));
+ const g=await J('Account/user_data_exports/discord_harvests/data_subject_access_requests.json');S.gen=g?.generated_at?Date.parse(g.generated_at.slice(0,19)+'Z'):0;
+ for(const r of U.relationships||[])S.fr[r.id]=r.user?.global_name||r.user?.username||r.id;
+ srvGet('@dm','Direct Messages');
+ const si=await J('Servers/index.json')||{};for(const id in si)srvGet(id,si[id],id);
+ const sd=[...new Set([...S.F.keys()].map(k=>k.match(/^Servers\/(\d+)\//)?.[1]).filter(Boolean))];
+ for(const id of sd){const gj=await J(`Servers/${id}/guild.json`)||{},s=srvGet(id,gj.name||`Server ${id}`,id);s.owned=true;s.raw=gj;s.icon=BL(`Servers/${id}/icon.png`);
+  for(const[rid,r]of Object.entries(gj.roles||{}))s.roles[rid]=r;
+  for(const c of await J(`Servers/${id}/channels.json`)||[]){const o={id:String(c.id),name:c.name||'unnamed',type:c.type||'GUILD_TEXT',pos:c.position,srv:id,msgs:[]};S.ch.set(o.id,o);s.chans.push(o)}
+  s.emoji=await J(`Servers/${id}/emoji.json`)||[];for(const e of s.emoji){const u=BL(`Servers/${id}/emoji/${e.id}.png`);if(u){S.emo[e.id]=u;S.emoN[e.name]=u}}}
+ S.midx=await J('Messages/index.json')||{};
+ const cids=[...new Set([...S.F.keys()].map(k=>k.match(/^Messages\/(c?\d+)\/messages\.json$/i)?.[1]).filter(Boolean))];let n=0,done=0;
+ const chan=async d=>{const id=d.replace(/^c/,''),cj=await J(`Messages/${d}/channel.json`)||{},mj=await J(`Messages/${d}/messages.json`)||[],lab=S.midx[id]||S.midx[d]||'';
+  const dm=/DM/.test(cj.type||'')||/^Direct Message/i.test(lab);let c=S.ch.get(id),name,key;
+  if(dm){key='@dm';name=lab.replace(/^Direct Message with /i,'')||cj.name||(cj.recipients||[]).filter(r=>r!=U.id).map(r=>S.fr[r]||r).join(', ')||'Unknown DM'}
+  else{const i=lab.indexOf(', '),sn=i>0?lab.slice(i+2):'';name=cj.name||(i>0?lab.slice(0,i):lab)||'unknown';key=cj.guild?.id;
+   if(!key)key=[...S.srv.values()].find(s=>!s.dm&&s.name==sn)?.key||'n:'+(sn||'Unknown server');srvGet(key,sn||'Unknown server',key.startsWith('n:')?null:key)}
+  if(!c){c={id,msgs:[]};S.ch.set(id,c);srvGet(key).chans.push(c)}
+  Object.assign(c,{name:cj.name||name,type:cj.type||(dm?'DM':'GUILD_TEXT'),srv:key,dm});if(dm)c.name=name;
+  for(const x of mj){const ts=x.Timestamp||x.timestamp||'',mid=x.ID??x.id;let t=Date.parse(ts.replace(/\//g,'-').replace(' ','T')+'Z');if(isNaN(t))t=SF(mid);c.msgs.push({id:mid,t,s:x.Contents??x.content??'',a:x.Attachments??x.attachments??'',ch:c})}
+  c.msgs.sort((a,b)=>a.t-b.t)};
+ await Promise.all(Array(8).fill().map(async()=>{while(n<cids.length){await chan(cids[n++]);if(++done%20==0||done==cids.length){prog(.1+.85*done/cids.length,`Reading channels ${done}/${cids.length}`);await new Promise(r=>setTimeout(r))}}}));
+ for(const c of S.ch.values())for(const m of c.msgs)S.M.push(m);S.M.sort((a,b)=>a.t-b.t);
+ S.json=[...S.F.keys()].filter(k=>/\.json$/i.test(k)&&!KNOWN.test(k)).sort();
+ S.sdom=mkSearch();$('#land').remove();$('#app').hidden=false;go({r:'home',v:'ov'})}
+
+/* ---------- markdown ---------- */
+const role=i=>{for(const v of S.srv.values())if(v.roles[i])return v.roles[i].name;return'role'};
+function md(s){if(!s)return'';const K=[],P=h=>'\0'+(K.push(h)-1)+'\0';
+ s=E(s).replace(/```(?:[\w+-]*\n)?([\s\S]*?)```/g,(_,c)=>P(`<pre>${c}</pre>`)).replace(/`+([^`\n]+?)`+/g,(_,c)=>P(`<code>${c}</code>`))
+ .replace(/&lt;a?:(\w+):(\d+)&gt;/g,(_,n,i)=>P(S.emo[i]?`<img class="em" src="${S.emo[i]}" title=":${n}:">`:`<span class="ep">:${n}:</span>`))
+ .replace(/&lt;@!?(\d+)&gt;/g,(_,i)=>P(`<span class="mn">@${E(i==S.U.id?S.U.global_name||S.U.username:S.fr[i]||'unknown-user')}</span>`))
+ .replace(/&lt;@&amp;(\d+)&gt;/g,(_,i)=>P(`<span class="mn">@${E(role(i))}</span>`))
+ .replace(/&lt;#(\d+)&gt;/g,(_,i)=>{const c=S.ch.get(i);return P(`<span class="mn"${c?` data-a="ch:${i}"`:''}>#${E(c?c.name:'unknown-channel')}</span>`)})
+ .replace(/&lt;t:(\d+)(?::(\w))?&gt;/g,(_,t,f)=>P(`<span class="mn">${f=='R'?rel(t*1e3):f=='D'?D(t*1e3):/[tT]/.test(f)?TM(t*1e3):DT(t*1e3)}</span>`))
+ .replace(/@(everyone|here)\b/g,(_,w)=>P(`<span class="mn">@${w}</span>`))
+ .replace(/https?:\/\/[^\s]+/g,u=>P(`<a href="${u}" target="_blank" rel="noopener noreferrer">${u}</a>`))
+ .replace(/^#{1,3} ([^\n]+)\n?/gm,'<h4>$1</h4>').replace(/^&gt; ?([^\n]*)\n?/gm,'<blockquote>$1</blockquote>')
+ .replace(/\|\|([\s\S]+?)\|\|/g,'<span class="sp">$1</span>').replace(/\*\*([\s\S]+?)\*\*/g,'<b>$1</b>').replace(/__([\s\S]+?)__/g,'<u>$1</u>')
+ .replace(/\*([^\s*][^*]*?)\*/g,'<i>$1</i>').replace(/(^|\W)_([^_\n]+)_(?!\w)/g,'$1<i>$2</i>').replace(/~~([\s\S]+?)~~/g,'<s>$1</s>');
+ return s.replace(/\0(\d+)\0/g,(_,i)=>K[i])}
+const att=m=>m.a?String(m.a).split(/\s+/).filter(u=>/^https?:/.test(u)).map(u=>{let n=u;try{n=decodeURIComponent(u.split('?')[0].split('/').pop())}catch{}return`<div class="att" data-u="${E(u)}">📎 <b>${E(n)}</b> <small>${S.cfg.local?'Fully local: not loaded':'Click to load'}</small></div>`}).join(''):'';
+
+/* ---------- navigation ---------- */
+const it=(a,i,l,on,x='',t='')=>`<div class="it${on?' on':''}" data-a="${E(a)}" title="${E(t||l)}"><b>${i}</b><span>${E(l)}</span>${x?`<small>${x}</small>`:''}</div>`;
+function go(n){S.nav={r:S.nav.r||'home',ch:null,file:null,...n};const v=S.nav.v,ct=$('#ct');$('#sf').value=S.nav._keep?$('#sf').value:'';rail();side();
+ if(v=='ov')ov();else if(v=='all')chat(S.M,{title:'All messages',icon:'🌐',mode:'all',sub:'Every channel, oldest to newest'});
+ else if(v=='ch'){const c=S.ch.get(S.nav.ch);chat(c.msgs,{title:c.name,icon:ci(c),mode:'ch',sub:c.dm?'Direct message':S.srv.get(c.srv).name,c},S.nav.k)}
+ else if(v=='srvall'){const s=S.srv.get(S.nav.r);chat(srvList(s),{title:s.name,icon:s.owned?'👑':'#',mode:'srv',sub:'All channels'})}
+ else if(v=='srv')srvInfo(S.srv.get(S.nav.r));else if(v=='search'){tb('🔍','Search');ct.replaceChildren(S.sdom);S.sdom.querySelector('#q').focus()}
+ else if(v=='acct')acct();else if(v=='json')jview();pane()}
+const srvList=s=>s._l||(s._l=s.chans.flatMap(c=>c.msgs).sort((a,b)=>a.t-b.t));
+function rail(){const ss=[...S.srv.values()].filter(s=>!s.dm&&(s.chans.length||s.owned)).sort((a,b)=>b.owned-a.owned||a.name.localeCompare(b.name)),r=S.nav.r;
+ $('#rail').innerHTML=`<div class="ri${r=='home'?' on':''}" data-a="home" title="Overview" style="background-color:var(--br);color:#fff">◉</div><div class="sep"></div>`+ss.map(s=>`<div class="ri${r==s.key?' on':''}" data-a="srv:${E(s.key)}" title="${E(s.name)}${s.owned?' (owned)':''}" style="${s.icon?`background-image:url(${s.icon})`:`background-color:hsl(${hue(s.name)} 40% 35%);color:#fff`}">${s.icon?'':E(s.name.split(/\s+/).map(w=>w[0]).join('').slice(0,3))}${s.owned?'<i>👑</i>':''}</div>`).join('')+`<div class="sep"></div><div class="ri${r=='json'?' on':''}" data-a="json:" title="Other JSON files">{ }</div>`;
+ const u=S.U,nm=u.global_name||u.username||'Unknown user';$('#up').innerHTML=`<div class="u" data-a="acct">${av(S.blob.avatar,nm)}<div><b>${E(nm)}</b><small>${E(u.username||'Open account')}</small></div></div>`}
+function side(){const n=S.nav,r=n.r,q=$('#sf').value.toLowerCase(),f=s=>!q||s.toLowerCase().includes(q);let h='',t,a='';
+ if(r=='home'){t='Your export';h=it('home','🏠','Overview',n.v=='ov')+it('all','🌐','All messages',n.v=='all',fn(S.M.length))+it('search','🔍','Search',n.v=='search')+it('acct','👤','Account',n.v=='acct')+'<div class="cat">Direct messages</div>'+[...S.ch.values()].filter(c=>c.dm&&f(c.name)).sort((a,b)=>(b.msgs.at(-1)?.t||0)-(a.msgs.at(-1)?.t||0)).slice(0,400).map(c=>it('ch:'+c.id,'@',c.name,n.ch==c.id,fn(c.msgs.length))).join('')}
+ else if(r=='json'){t='Other JSON files';h=S.json.filter(f).map(p=>it('json:'+p,'{}',p,n.file==p)).join('')||'<div class="empty">No other JSON files found.</div>'}
+ else{const s=S.srv.get(r);t=(s.owned?'👑 ':'')+s.name;a=`srv:${r}`;h=it('srv:'+r,'ℹ','Server info',n.v=='srv')+it('srvall:'+r,'🌐','All channels',n.v=='srvall',fn(srvList(s).length))+'<div class="cat">Channels</div>'+s.chans.filter(c=>f(c.name)).sort((a,b)=>(a.pos??1e9)-(b.pos??1e9)||b.msgs.length-a.msgs.length).map(c=>it('ch:'+c.id,ci(c),c.name,n.ch==c.id,c.msgs.length?fn(c.msgs.length):'')).join('')}
+ $('#sh').innerHTML=E(t);$('#sh').dataset.a=a;$('#sl').innerHTML=h}
+function tb(i,t,s,x=''){$('#top').innerHTML=`<span class="mu" style="font-size:20px">${i}</span><b>${E(t)}</b>${s?`<span class="mu">${E(s)}</span>`:''}<span style="flex:1"></span>${S.back?'<button class="g" data-a="search">← Results</button>':''}${x}<input id="qs" placeholder="Search all messages"><button class="g" data-a="pane" title="Toggle side panel">☰</button>`}
+
+/* ---------- messages (windowed list) ---------- */
+function chat(list,o,k){S.cur={list,...o};tb(o.icon,o.title,o.sub);$('#ct').innerHTML='<div id="msgs"><div id="intro"></div><div id="rows"></div></div>';
+ $('#msgs').onscroll=()=>{S.raf||(S.raf=requestAnimationFrame(()=>{S.raf=0;grow()}))};win(k)}
+const rows=(a,b)=>{let h='';for(let k=a;k<b;k++)h+=row(S.cur.list,k);return h};
+function row(L,k){const m=L[k],p=L[k-1],c=m.ch,nd=!p||dk(p.t)!=dk(m.t),g=!nd&&p.ch===c&&m.t-p.t<42e4,nm=S.U.global_name||S.U.username||'You';
+ return`<div class="w" data-k="${k}">${nd?`<div class="dv"><span>${D(m.t)}</span></div>`:''}<div class="m${g?'':' h'}">${g?`<span class="ht" data-a="det:${k}">${TM(m.t)}</span>`:`${av(S.blob.avatar,nm)}<div class="hd"><b>${E(nm)}</b>${S.cur.mode=='ch'?'':`<span class="cl" data-a="ch:${c.id}">${E(cl(c,S.cur.mode=='all'))}</span>`}<time data-a="det:${k}">${DT(m.t)}</time></div>`}<div class="c">${md(m.s)}${att(m)}</div></div></div>`}
+function intro(){const o=S.cur;$('#intro').innerHTML=W.lo==0&&o.list.length?`<div class="intro"><div class="ib">${o.icon}</div><h1>${E(o.mode=='ch'?(o.c.dm?o.title:'Welcome to #'+o.title):o.title)}</h1><div class="mu">This is the start of your exported history here. Only messages you sent are included, so conversations look one-sided.</div></div>`:''}
+function win(k){const L=S.cur.list,n=L.length;W=k==null?{lo:Math.max(0,n-80),hi:n}:{lo:Math.max(0,k-40),hi:Math.min(n,k+60)};
+ $('#rows').innerHTML=n?rows(W.lo,W.hi):'<div class="empty">No messages here yet.</div>';intro();const B=$('#msgs');
+ if(k==null)B.scrollTop=B.scrollHeight;else{const e=B.querySelector(`[data-k="${k}"]`);if(e){e.scrollIntoView({block:'center'});e.classList.add('fx');setTimeout(()=>e.classList.remove('fx'),2200)}}}
+function grow(){const B=$('#msgs');if(!B)return;const L=S.cur.list,R=$('#rows');
+ if(B.scrollTop<400&&W.lo>0){const a=Math.max(0,W.lo-60),H=B.scrollHeight;R.insertAdjacentHTML('afterbegin',rows(a,W.lo));W.lo=a;intro();B.scrollTop+=B.scrollHeight-H;trim(0)}
+ else if(B.scrollHeight-B.scrollTop-B.clientHeight<400&&W.hi<L.length){const b=Math.min(L.length,W.hi+60);R.insertAdjacentHTML('beforeend',rows(W.hi,b));W.hi=b;trim(1)}}
+function trim(top){const x=W.hi-W.lo-300;if(x<=0)return;const R=$('#rows'),B=$('#msgs'),H=B.scrollHeight;
+ if(top){for(let i=0;i<x;i++)R.firstElementChild.remove();W.lo+=x;intro();B.scrollTop+=B.scrollHeight-H}else{for(let i=0;i<x;i++)R.lastElementChild.remove();W.hi-=x}}
+function lower(L,t){let a=0,b=L.length;while(a<b){const m=a+b>>1;L[m].t<t?a=m+1:b=m}return a}
+function jumpTo(t){const v=S.nav.v;if(!/^(ch|all|srvall)$/.test(v)){go({r:'home',v:'all'})}const L=S.cur.list;if(L.length)win(Math.min(lower(L,t),L.length-1))}
+function openMsg(m){const c=m.ch;S.back=true;go({r:c.srv,v:'ch',ch:c.id,k:c.msgs.indexOf(m)})}
+function det(k){const m=S.cur.list[k],c=m.ch,s=S.srv.get(c.srv);mod(`<h3>Message details</h3><dl>${[['Message ID',m.id],['Sent (UTC)',new Date(m.t).toISOString()],['Sent (local)',new Date(m.t).toString()],['Channel',cl(c)],['Channel ID',c.id],['Server',s.name+(s.id?` (${s.id})`:'')],['Length',m.s.length+' characters'],['Attachments',m.a||'None']].map(([a,b])=>`<dt>${a}</dt><dd>${E(b)}</dd>`).join('')}</dl><b>Raw content</b><pre>${E(m.s)||'(empty)'}</pre>`)}
+
+/* ---------- side panel ---------- */
+const SC=new WeakMap;
+function stats(L){let s=SC.get(L);if(s)return s;s={n:L.length,att:0,len:0,mo:new Map,f:L[0]?.t,l:L.at(-1)?.t};for(const m of L){if(m.a)s.att++;s.len+=m.s.length;const k=new Date(m.t).toISOString().slice(0,7);s.mo.set(k,(s.mo.get(k)||0)+1)}SC.set(L,s);return s}
+function pane(){const v=S.nav.v,chatv=/^(ch|all|srvall)$/.test(v),L=chatv?S.cur.list:S.M,st=stats(L),kv=(a,b)=>`<div class="kv"><span>${a}</span><span>${b}</span></div>`;let mo='';
+ if(st.n){let[y,m]=[...st.mo.keys()][0].split('-').map(Number);const e=new Date(st.l),ey=e.getUTCFullYear(),em=e.getUTCMonth()+1,A=[];while(y<ey||(y==ey&&m<=em)){const k=`${y}-${String(m).padStart(2,'0')}`;A.push([k,st.mo.get(k)||0]);if(++m>12){m=1;y++}}const mx=Math.max(...A.map(a=>a[1]));mo=`<div class="mb">${A.map(([k,c])=>`<i data-a="jm:${k}" title="${k}: ${c}" style="height:${Math.max(2,c/mx*100)}%"></i>`).join('')}</div><div class="kv"><span>${A[0][0]}</span><span>${A.at(-1)[0]}</span></div>`}
+ $('#pane').innerHTML=`<h3>${E(chatv?S.cur.title:'Whole export')}</h3><h4>Statistics</h4>${kv('Messages',fn(st.n))}${st.n?kv('First',D(st.f))+kv('Latest',D(st.l))+kv('With attachments',fn(st.att))+kv('Average length',Math.round(st.len/st.n)+' chars'):''}
+ ${chatv?`<h4>Jump to date</h4><div class="sw"><input type="date" id="jd" style="flex:1"><button class="b" data-a="jd">Go</button></div>`:''}${mo?`<h4>Activity by month (click to jump)</h4>${mo}`:''}
+ <h4>Display and privacy</h4><label class="sw"><input type="checkbox" id="cb" ${S.cfg.blur?'checked':''}>Blur sensitive data (IP, email, phone)</label><label class="sw"><input type="checkbox" id="cl" ${S.cfg.local?'checked':''}>Fully local: never load attachments</label><label class="sw"><input type="checkbox" id="cu" ${S.cfg.utc?'checked':''}>Show times in UTC</label>
+ <p class="mu">Nothing leaves this page. Attachment links are only requested when you click one and Fully local is off.</p>`}
+
+/* ---------- overview ---------- */
+function ov(){tb('🏠','Overview');const st=stats(S.M),cs=[...S.ch.values()].filter(c=>c.msgs.length).sort((a,b)=>b.msgs.length-a.msgs.length),tc=cs.slice(0,12),c=(a,b)=>`<div class="card"><span class="mu">${a}</span><b>${b}</b></div>`;
+ $('#ct').innerHTML=`<div class="pad"><h2>Overview</h2>${S.warn.length?`<p class="mu">⚠ ${S.warn.length} file(s) could not be parsed and were skipped.</p>`:''}<div class="grid">${c('Messages sent',fn(st.n))}${c('Channels with messages',fn(cs.length))}${c('Servers',[...S.srv.values()].filter(s=>!s.dm&&(s.chans.length||s.owned)).length)}${c('Owned servers',[...S.srv.values()].filter(s=>s.owned).length)}${c('With attachments',fn(st.att))}${c('Time span',st.n?`${new Date(st.f).getUTCFullYear()} – ${new Date(st.l).getUTCFullYear()}`:'—')}${S.gen?c('Data requested',D(S.gen)):''}</div>
+ <h3>Most active channels</h3>${tc.map(x=>`<div class="bar" data-a="ch:${x.id}"><span>${E(cl(x,1))}</span><i style="width:${x.msgs.length/tc[0].msgs.length*60}%"></i><b>${fn(x.msgs.length)}</b></div>`).join('')||'<div class="empty">No messages found in this package.</div>'}</div>`}
+
+/* ---------- account ---------- */
+function acct(){tb('👤','Account');const u=S.U,nm=u.global_name||u.username||'Unknown user',ph=Array.isArray(u.phone)?u.phone.join(', '):u.phone,none='<i class="mu">Not in export</i>';
+ const rw=(l,v,s)=>`<div class="rw"><div><small>${l}</small></div><div class="${s?'sens':''}">${v?E(v):none}</div></div>`,fm=u.emoji_Frecency?.emojis||{},ee=Object.entries(fm).sort((a,b)=>(b[1].totalUses||0)-(a[1].totalUses||0)).slice(0,30),rl=u.relationships||[];
+ $('#ct').innerHTML=`<div class="pad"><div class="bn" style="background:hsl(${hue(nm)} 35% 55%)"></div><div class="ah">${av(S.blob.avatar,nm)}<div><h2>${E(nm)}</h2><span class="mu">${E(u.username||'')}</span></div></div>
+ <div class="sc">${rw('Display name',u.global_name)}${rw('Username',u.username)}${rw('User ID',u.id)}${rw('Account created',u.id?D(SF(u.id)):'')}${rw('Email',u.email,1)}${rw('Email verified',u.verified==null?'':u.verified?'Yes':'No')}${rw('Phone number',ph||('phone' in u?"You haven't added a phone number yet.":''),!!ph)}${rw('IP address',u.ip,1)}${rw('Data requested',S.gen?DT(S.gen):'')}</div>
+ <h3 class="sec">Relationships (${rl.length})</h3><div class="fr" style="margin-top:8px"><input id="rq" placeholder="Search friends and blocked users"><select id="rt"><option value="">All</option><option>FRIEND</option><option>BLOCKED</option></select></div><div class="sc" id="rl"></div>
+ ${ee.length?`<h3 class="sec">Most used emoji</h3><div style="margin-top:8px">${ee.map(([k,v])=>`<span class="chip">${S.emoN[k]?`<img src="${S.emoN[k]}">`:E(k)}<span class="mu">×${fn(v.totalUses||0)}</span></span>`).join('')}</div>`:''}
+ ${S.blob.recent.length?`<h3 class="sec">Recent avatars</h3><div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px">${S.blob.recent.map(u=>`<div class="av" style="width:64px;height:64px;background-image:url(${u})"></div>`).join('')}</div>`:''}
+ <h3 class="sec">All fields in user.json</h3><div id="raw"></div></div>`;relList();$('#raw').append(tree(u,'user.json'))}
+function relList(){const q=($('#rq')?.value||'').toLowerCase(),t=$('#rt')?.value,r=(S.U.relationships||[]).filter(x=>(!t||x.type==t)&&(`${x.user?.username} ${x.user?.global_name} ${x.id}`).toLowerCase().includes(q));
+ $('#rl').innerHTML=r.slice(0,300).map(x=>`<div class="rw"><div><b>${E(x.user?.global_name||x.user?.username||x.id)}</b><br><span class="mu">${E(x.user?.username||'')} · ${E(x.id)}</span></div><div><span class="badge${x.type=='BLOCKED'?' r':''}">${E(x.type)}</span></div></div>`).join('')||'<div class="empty">No matching relationships.</div>'}
+
+/* ---------- servers ---------- */
+function srvInfo(s){tb(s.owned?'👑':'ℹ',s.name,s.owned?'Created by you':'');const mc=srvList(s).length,rl=Object.entries(s.roles).sort((a,b)=>b[1].position-a[1].position),rw=(l,v)=>`<div class="rw"><div><small>${l}</small></div><div>${v?E(v):'<i class="mu">Not in export</i>'}</div></div>`;
+ $('#ct').innerHTML=`<div class="pad"><div class="bn" style="background:hsl(${hue(s.name)} 35% 40%)"></div><div class="ah">${av(s.icon,s.name)}<div><h2>${E(s.name)} ${s.owned?'<span class="badge">👑 Owned by you</span>':''}</h2></div></div>
+ <div class="sc">${rw('Server ID',s.id)}${rw('Created',s.id?D(SF(s.id)):'')}${rw('Your messages',fn(mc))}${rw('Channels',s.chans.length?String(s.chans.length):'')}${s.owned?rw('Roles',String(rl.length))+rw('Custom emoji',String(s.emoji.length)):''}</div>
+ ${s.owned?'':'<p class="mu">Discord only includes full details for servers you own. Here you get the name and your own messages.</p>'}
+ <h3 class="sec">Channels</h3><table class="tbl">${s.chans.sort((a,b)=>(a.pos??1e9)-(b.pos??1e9)).map(c=>`<tr data-a="ch:${c.id}"><td>${ci(c)} ${E(c.name)}</td><td class="mu">${E(c.type)}</td><td class="mu">${c.pos??''}</td><td style="text-align:right">${fn(c.msgs.length)}</td></tr>`).join('')}</table>
+ ${rl.length?`<h3 class="sec">Roles</h3><table class="tbl">${rl.map(([i,r])=>`<tr><td>${E(r.name)}</td><td class="mu">${i}</td><td class="mu">position ${r.position}</td></tr>`).join('')}</table>`:''}
+ ${s.emoji.length?`<h3 class="sec">Emoji</h3><div style="margin-top:8px">${s.emoji.map(e=>`<span class="chip" title="${E(e.id)}">${S.emo[e.id]?`<img src="${S.emo[e.id]}">`:'🙂'}:${E(e.name)}:<span class="mu">${fn(S.U.emoji_Frecency?.emojis?.[e.name]?.totalUses||0)} uses</span></span>`).join('')}</div>`:''}
+ ${s.raw?'<h3 class="sec">guild.json</h3><div id="raw"></div>':''}</div>`;if(s.raw)$('#raw').append(tree(s.raw,'guild.json'))}
+
+/* ---------- JSON explorer ---------- */
+function tree(v,k,o=0){const sens=/^(email|phone|ip)$/i.test(k);
+ if(v&&typeof v=='object'){const a=Array.isArray(v),en=a?v.map((x,i)=>[i,x]):Object.entries(v),d=document.createElement('details');d.innerHTML=`<summary><b>${E(k)}</b> <i class="mu">${a?'['+en.length+']':'{'+en.length+'}'}</i></summary>`;let n=0;
+  const mk=()=>{d.querySelector(':scope>.more')?.remove();for(const[kk,vv]of en.slice(n,n+300))d.append(tree(vv,kk,1));n=Math.min(en.length,n+300);if(n<en.length){const b=document.createElement('button');b.className='g more';b.textContent=`Show more (${en.length-n})`;b.onclick=mk;d.append(b)}};
+  d.ontoggle=()=>{if(d.open&&!n)mk()};if(!o){d.open=true;mk()}return d}
+ const e=document.createElement('div');e.className='lf';e.innerHTML=`<b>${E(k)}</b>: <span class="${typeof v}${sens?' sens':''}">${E(JSON.stringify(v))}</span>`;return e}
+function jfind(r,q){const out=[],st=[[r,'$']];q=q.toLowerCase();while(st.length&&out.length<300){const[v,p]=st.pop();if(v&&typeof v=='object'){const A=Array.isArray(v);for(const[k,x]of Object.entries(v).reverse())st.push([x,p+(A?`[${k}]`:'.'+k)])}else if((p+' '+v).toLowerCase().includes(q))out.push([p,v])}return out}
+function jview(){const p=S.nav.file;tb('{ }',p?p.split('/').pop():'Other JSON files',p||'');$('#ct').innerHTML=p?`<div class="pad"><div class="fr"><input id="jq" placeholder="Search keys and values" style="flex:1"></div><div id="jt"></div></div>`:'<div class="empty">Pick a JSON file from the list. These are files in the package that this visualizer has no dedicated view for.</div>';if(p)jload(p)}
+async function jload(p){const t=$('#jt');t.textContent='Loading…';const f=S.F.get(p);let x,d;try{x=await f.text();try{d=JSON.parse(x)}catch{d=x.split('\n').filter(l=>l.trim()).map(l=>JSON.parse(l))}}catch{t.textContent='This file could not be read as JSON.';return}S.jd=d;showJ()}
+function showJ(){const q=$('#jq')?.value,t=$('#jt');if(!t||S.jd===undefined)return;t.innerHTML='';if(q){const r=jfind(S.jd,q);t.innerHTML=`<p class="mu">${r.length}${r.length>=300?'+':''} matches</p>`+r.map(([p,v])=>`<div class="lf"><code>${E(p)}</code> = ${E(JSON.stringify(v))}</div>`).join('')}else t.append(tree(S.jd,'root'))}
+
+/* ---------- search ---------- */
+function mkSearch(){const d=document.createElement('div');d.className='pad';const ss=[...S.srv.values()].filter(s=>s.chans.some(c=>c.msgs.length));
+ d.innerHTML=`<h2>Search</h2><div class="fr"><input id="q" placeholder="Keyword or regular expression"><label><input type="checkbox" id="rx">Regex</label><label><input type="checkbox" id="cs">Match case</label></div>
+ <div class="fr"><label>From <input type="date" id="d1"></label><label>To <input type="date" id="d2"></label><select id="sv"><option value="">All servers and DMs</option>${ss.map(s=>`<option value="${E(s.key)}">${E(s.name)}</option>`).join('')}</select><select id="cn"><option value="">All channels</option></select>
+ <select id="hs"><option value="">Any content</option><option value="att">Has attachment</option><option value="no">No attachment</option><option value="link">Has link</option></select><select id="so"><option value="">Oldest first</option><option value="d">Newest first</option></select></div><p id="s0" class="mu"></p><div id="sr"></div>`;
+ d.addEventListener('input',e=>{if(e.target.id=='q'){clearTimeout(S.dt);S.dt=setTimeout(runSearch,200)}});
+ d.addEventListener('change',e=>{if(e.target.id=='sv'){const s=S.srv.get(e.target.value);d.querySelector('#cn').innerHTML='<option value="">All channels</option>'+(s?s.chans.filter(c=>c.msgs.length).map(c=>`<option value="${c.id}">${E(c.name)}</option>`).join(''):'')}runSearch()});return d}
+function runSearch(){const g=i=>S.sdom.querySelector('#'+i),q=g('q').value,s0=g('s0');let re=null;
+ if(q)try{re=new RegExp(g('rx').checked?q:q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),g('cs').checked?'':'i')}catch(e){s0.textContent='Invalid regular expression: '+e.message;g('sr').innerHTML='';return}
+ const z=S.cfg.utc?'Z':'',t1=g('d1').value?+new Date(g('d1').value+'T00:00:00'+z):-1/0,t2=g('d2').value?+new Date(g('d2').value+'T00:00:00'+z)+864e5:1/0,hs=g('hs').value,sv=S.srv.get(g('sv').value),cn=S.ch.get(g('cn').value);
+ const src=cn?cn.msgs:sv?srvList(sv):S.M,out=[];
+ for(const m of src){if(m.t<t1||m.t>=t2)continue;if(hs=='att'&&!m.a||hs=='no'&&m.a||hs=='link'&&!/https?:\/\//.test(m.s))continue;if(re&&!re.test(m.s)&&!re.test(m.a))continue;out.push(m)}
+ if(g('so').value)out.reverse();S.res=out;S.rn=0;s0.textContent=`${fn(out.length)} message${out.length==1?'':'s'} found`;g('sr').innerHTML='';S.re=re;more()}
+function more(){const g=S.sdom.querySelector('#sr');g.querySelector('.mb2')?.remove();const a=S.rn,b=Math.min(S.res.length,a+100),re=S.re&&new RegExp(S.re.source,S.re.flags+'g');let h='';
+ for(let i=a;i<b;i++){const m=S.res[i];let s=m.s,i0=0;if(re){re.lastIndex=0;const x=re.exec(s);i0=x?Math.max(0,x.index-80):0}s=s.slice(i0,i0+320);let e=re?E(s.replace(re,x=>'\u0001'+x+'\u0002')).replace(/\u0001/g,'<mark>').replace(/\u0002/g,'</mark>'):E(s);
+  h+=`<div class="res" data-a="goto:${i}"><small>${E(cl(m.ch,1))} · ${DT(m.t)}${m.a?' · 📎':''}</small><p>${i0?'…':''}${e||'<i class="mu">(no text)</i>'}</p></div>`}
+ g.insertAdjacentHTML('beforeend',h+(b<S.res.length?`<button class="g mb2" data-a="more">Show more (${fn(S.res.length-b)} left)</button>`:''));S.rn=b}
+
+/* ---------- events ---------- */
+function act(a){const i=a.indexOf(':'),x=i<0?a:a.slice(0,i),y=a.slice(i+1);if(x!='goto')S.back=false;
+ if(x=='x')$('#modal').style.display='none';else if(x=='home')go({r:'home',v:'ov'});else if(x=='all')go({r:'home',v:'all'});else if(x=='search')go({v:'search'});else if(x=='acct')go({v:'acct'});
+ else if(x=='ch'){const c=S.ch.get(y);go({r:c.srv,v:'ch',ch:y})}else if(x=='srv')go({r:y,v:'srv'});else if(x=='srvall')go({r:y,v:'srvall'});else if(x=='json')go({r:'json',v:'json',file:y||null});
+ else if(x=='goto')openMsg(S.res[+y]);else if(x=='det')det(+y);else if(x=='more')more();else if(x=='pane')document.body.classList.toggle('hide');
+ else if(x=='jm')jumpTo(Date.parse(y+'-01T00:00:00'+(S.cfg.utc?'Z':'')));else if(x=='jd'){const v=$('#jd').value;v?jumpTo(+new Date(v+'T00:00:00'+(S.cfg.utc?'Z':''))):toast('Choose a date first')}}
+document.addEventListener('click',e=>{const t=e.target;
+ if(t.id=='modal'){act('x');return}if(t.closest('.sp')){t.closest('.sp').classList.toggle('on');return}
+ const at=t.closest('.att');if(at&&!at.querySelector('img')){if(S.cfg.local)return toast('Fully local is on. Attachments are not loaded.');const u=at.dataset.u;if(/\.(png|jpe?g|gif|webp)(\?|$)/i.test(u))at.innerHTML=`<img src="${E(u)}" alt="attachment">`;else window.open(u,'_blank','noopener,noreferrer');return}
+ const a=t.closest('[data-a]');if(a&&a.dataset.a)act(a.dataset.a)});
+document.addEventListener('change',e=>{const i=e.target.id,c=e.target.checked;
+ if(i=='cb'){S.cfg.blur=c;document.body.classList.toggle('blur',c)}else if(i=='cl'){S.cfg.local=c;document.querySelectorAll('.att:not(:has(img)) small').forEach(s=>s.textContent=c?'Fully local: not loaded':'Click to load')}else if(i=='cu'){S.cfg.utc=c;go({...S.nav,_keep:1})}else if(i=='rt')relList()});
+document.addEventListener('input',e=>{const i=e.target.id;if(i=='sf'){side()}else if(i=='rq')relList();else if(i=='jq'){clearTimeout(S.jt);S.jt=setTimeout(showJ,200)}});
+document.addEventListener('keydown',e=>{if(e.key=='Escape')act('x');if((e.ctrlKey||e.metaKey)&&e.key=='k'){e.preventDefault();act('search')}
+ if(e.key=='Enter'&&e.target.id=='qs'){const v=e.target.value;go({v:'search'});S.sdom.querySelector('#q').value=v;runSearch()}else if(e.key=='Enter'&&e.target.id=='q')runSearch()});
+const dz=$('#dz');$('#pick').onclick=()=>$('#fi').click();$('#fi').onchange=e=>ingest([...e.target.files].map(f=>[f.webkitRelativePath||f.name,f]));
+addEventListener('dragover',e=>e.preventDefault());
+addEventListener('drop',async e=>{e.preventDefault();if(!$('#land'))return;prog(.01,'Scanning folder…');const out=[];for(const it of[...e.dataTransfer.items]){const en=it.webkitGetAsEntry?.();if(en)await walk(en,'',out)}ingest(out)});
+</script></body></html>
