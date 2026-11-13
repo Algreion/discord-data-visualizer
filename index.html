@@ -599,14 +599,14 @@ function tipHide(){const t=$('#rtip');tipEl=null;if(t)t.classList.remove('on')}
 /* ---- export messages ---- */
 const EXP={fmt:'hr',hr:'md'};
 /* what the current page would export (null = this page has no export) */
-function expScope(){const v=S.nav.v;let L,what,slug,priv=0;
+function expScope(){const v=S.nav.v;let L,what,slug;
  if(v=='ov'||v=='all'){L=S.M;what='All messages';slug='all-messages'}
- else if(v=='ch'){const c=S.ch.get(S.nav.ch);if(!c)return null;L=chl(c);what='Messages in '+cl(c,1);slug=c.name;priv=1}
- else if(v=='srv'||v=='srvall'){const s=S.srv.get(S.nav.r);if(!s)return null;L=srvList(s);what=s.dm?'All direct messages':'All messages in '+s.name;slug=s.name;priv=1}
+ else if(v=='ch'){const c=S.ch.get(S.nav.ch);if(!c)return null;L=chl(c);what='Messages in '+cl(c,1);slug=c.name}
+ else if(v=='srv'||v=='srvall'){const s=S.srv.get(S.nav.r);if(!s)return null;L=srvList(s);what=s.dm?'All direct messages':'All messages in '+s.name;slug=s.name}
  else if(v=='search'){L=S.res||[];what='Search results';slug='search-results'}
  else if(v=='stars'){L=S.cur&&S.cur.stars?S.cur.list.filter(m=>S.pref.stars[sk(m)]):[];what='Starred messages'+(S.stf&&S.stf.q?' (filtered list)':'');slug='starred-messages'}
  else return null;
- return{L,what,slug,priv}}
+ return{L,what,slug}}
 const expOk=m=>!m.del&&!m.vc; /* deleted messages and voice call sessions are never exported */
 function expSync(){const w=$('#expw');if(!w)return;const sc=expScope(),on=sc&&sc.L.some(expOk)?'1':''; /* only touch the DOM when it must appear/disappear: re-rendering the button under the cursor would swallow a click that follows a search-box blur */
  if(w.dataset.on===on)return;w.dataset.on=on;w.innerHTML=on?'<h4>Export</h4><button class="b xb" data-a="xmo">Export messages\u2026</button>':''}
@@ -614,7 +614,7 @@ function expOpen(){const sc=expScope();if(!sc)return;const ms=sc.L.filter(expOk)
 function expRender(){const sc=EXP.sc,f=EXP.fmt,md=EXP.hr=='md',all=EXP.ms.length,n=f=='raw'?EXP.nt:all,ext=f=='json'?'.json':f=='raw'||!md?'.txt':'.md',
  info=f=='raw'?(all>n?` \u00b7 ${fn(all-n)} without text skipped`:''):(EXP.at?` \u00b7 ${fn(EXP.at)} with attachments`:'');
  const opt=(k,t,d,x)=>`<div class="eo${f==k?' on':''}"><button type="button" class="eob" role="radio" aria-checked="${f==k}" data-a="xmf:${k}"><i class="rd"></i><span><b>${t}</b><small>${d}</small></span></button>${x||''}</div>`;
- mod(`<div class="xh"><h3>Export messages</h3><button type="button" class="g xc" data-a="x" title="Close" aria-label="Close">${ico('x')}</button></div><div class="xs"><b${sc.priv?' class="sens"':''}>${E(sc.what)}</b><div><span>${fn(n)}</span> message${n==1?'':'s'}${info}</div></div>`
+ mod(`<div class="xh"><h3>Export messages</h3><button type="button" class="g xc" data-a="x" title="Close" aria-label="Close">${ico('x')}</button></div><div class="xs"><b>${E(sc.what)}</b><div><span>${fn(n)}</span> message${n==1?'':'s'}${info}</div></div>`
  +`<div role="radiogroup" aria-label="Export format">`
  +opt('json','JSON','Full details, for programs')
  +opt('hr','Human-readable','For reading and searching',`<div class="xsg"><button type="button" class="g xsb${md?' on':''}" data-a="xmh:md">MD</button><button type="button" class="g xsb${md?'':' on'}" data-a="xmh:txt">TXT</button></div>`)
