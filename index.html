@@ -212,11 +212,18 @@ async function unzip(f){if(typeof DecompressionStream=='undefined')return prog(0
    p+=46+nl+xl+cl;if(name.endsWith('/')||/(^|\/)__MACOSX\//.test(name))continue;out.push([name,zent(f,m,c,u,o)])}
   return out}catch(err){prog(0,'Could not read this ZIP file.')}}
 async function walk(e,p,out){if(e.isFile)out.push([p+e.name,await new Promise(r=>e.file(r))]);else{const rd=e.createReader(),a=[];for(;;){const b=await new Promise(r=>rd.readEntries(r));if(!b.length)break;a.push(...b)}for(const x of a)await walk(x,p+e.name+'/',out)}}
-const pfx=list=>{let pre='';for(const[p]of list){const m=p.match(/^(.*?\/)?(?:Account\/user|Messages\/index|Servers\/index)\.json$/i);if(m){pre=m[1]||'';break}}if(!pre){const f=list[0]?.[0].split('/')[0];if(f&&list.every(([p])=>p.startsWith(f+'/')))pre=f+'/'}return pre};
-const PK=/^(.*?\/)?(?:Account\/user|Messages\/index|Servers\/index)\.json$/i;
+/* Localized top-level folder names -> English names. Add a language by adding a line to LOC. */
+const LOC={
+ it:{Annunci:'Ads','Attività':'Activity',Messaggi:'Messages',Server:'Servers',Ticket_di_assistenza:'Support_Tickets'}
+};
+const ALIAS=new Map();for(const l of Object.values(LOC))for(const[k,v]of Object.entries(l))ALIAS.set(k.normalize('NFC').toLowerCase(),v);
+const canon=p=>{const i=p.indexOf('/'),h=(i<0?p:p.slice(0,i));return(ALIAS.get(h.normalize('NFC').toLowerCase())||h)+(i<0?'':p.slice(i))};
+const alt=en=>[en,...[...ALIAS].filter(([,v])=>v==en).map(([k])=>k)].join('|');
+const PK=new RegExp('^(.*?\\/)?(?:(?:'+alt('Account')+')\\/user|(?:'+alt('Messages')+')\\/index|(?:'+alt('Servers')+')\\/index)\\.json$','i');
+const pfx=list=>{let pre='';for(const[p]of list){const m=p.match(PK);if(m){pre=m[1]||'';break}}if(!pre){const f=list[0]?.[0].split('/')[0];if(f&&list.every(([p])=>p.startsWith(f+'/')))pre=f+'/'}return pre};
 const split=list=>{const ps=[...new Set(list.map(([p])=>p.match(PK)).filter(Boolean).map(m=>m[1]||''))];if(ps.length<2)return[list];const g=new Map(ps.map(p=>[p,[]]));for(const e of list){let b=null;for(const p of ps)if(e[0].startsWith(p)&&(b===null||p.length>b.length))b=p;if(b!==null)g.get(b).push(e)}return[...g.values()]};
-const peek=async list=>{try{const pre=pfx(list),e=list.find(([p])=>p==pre+'Account/user.json');if(e){const u=JSON.parse(await e[1].text());return u.global_name||u.username||''}}catch{}return''};
-const DIRS=new Set(['Account','Activities','Activity','Ads','Messages','Servers','Support_Tickets']),okPkg=list=>{const t=new Set(list.map(([p])=>p.split('/')[0]));if([...t].some(x=>DIRS.has(x)))return true;return t.size==1&&list.some(([p])=>DIRS.has(p.split('/')[1]))},NOPKG='That doesn’t look like a Discord package.';
+const peek=async list=>{try{const pre=pfx(list),e=list.find(([p])=>p.startsWith(pre)&&canon(p.slice(pre.length))=='Account/user.json');if(e){const u=JSON.parse(await e[1].text());return u.global_name||u.username||''}}catch{}return''};
+const DIRS=new Set(['Account','Activities','Activity','Ads','Messages','Servers','Support_Tickets']),okPkg=list=>{const t=new Set(list.map(([p])=>canon(p.split('/')[0])));if([...t].some(x=>DIRS.has(x)))return true;return t.size==1&&list.some(([p])=>DIRS.has(canon(p.split('/')[1]||'')))},NOPKG='That doesn’t look like a Discord package.';
 async function start(lists){S.skipAct=!!$('#ska')?.checked;try{const A=[];for(const l of lists)for(const g of split(l)){if(!okPkg(g))continue;A.push({list:g,label:await peek(g)||'Account '+(A.length+1)})}if(!A.length){const p=$('#pg');if(p){p.style.display='none';$('#ls').textContent=NOPKG;$('#ls').classList.add('err')}return toast(NOPKG)}S.srcs=A;S.ai=0;await ingest(A[0].list)}catch{prog(0,'Could not read this package.')}}
 async function intake(fs){const L=[];for(const f of fs){const o=await unzip(f);if(o)L.push(o)}if(L.length)start(L)}
 async function switchAcct(i){if(i==S.ai||!S.srcs?.[i])return;S.ai=i;resetS();const a=S.srcs[i];$('#sp').style.display='none';busy('Loading '+a.label+'…');await tick();try{await ingest(a.list)}catch{toast('Could not load this account')}unbusy()}
@@ -309,7 +316,7 @@ function useMe(w,i){const L=legacy(w=='g'?'display':'username'),m=S.pref.me||(S.
 async function ingest(list){
  const pre=pfx(list);
 
- for(const[p,f]of list)if(p.startsWith(pre))S.F.set(p.slice(pre.length),f);
+ for(const[p,f]of list)if(p.startsWith(pre))S.F.set(canon(p.slice(pre.length)),f);
  if(!S.F.size)return prog(0,'No files found. Please choose the package folder.');
  for(const[k,v]of S.F)if(v.z&&/\.(png|jpe?g|gif|webp)$/i.test(k)){try{S.F.set(k,new Blob([await v.blob()],{type:'image/'+k.match(/\.(\w+)$/)[1].toLowerCase().replace('jpg','jpeg')}))}catch{}}
  prog(.02,'Reading account…');
